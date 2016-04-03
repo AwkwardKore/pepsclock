@@ -119,7 +119,7 @@ void displayHour () {
   }
   tft.print(second());
   delay(1000);
-  tft.fillRect(50,80,145,25, WHITE);
+  tft.fillRect(10,80,219,25, WHITE);
 }
 
 //Display Date
