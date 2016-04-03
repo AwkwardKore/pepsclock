@@ -10,7 +10,7 @@ baud_rate = 9600
 data_bits = 8
 stop_bits = 1
 parity = SerialPort::NONE
-sp = SerialPort.new(port_str, baud_rate, data_bits, stop_bits, parity)
+@sp = SerialPort.new(port_str, baud_rate, data_bits, stop_bits, parity)
 
 #Sends current time to the arduino
 for i in 0..2
@@ -19,11 +19,11 @@ for i in 0..2
   second = format('%02d', Time.now.sec)
   day = format('%02d', Time.now.day)
   month = format('%02d', Time.now.month)
-  #sp.write("#{day}")
-  sp.write("#{hour}:#{minute}:#{second}:#{day}:#{month}:#{Time.now.year}")
-  sleep(1)
+  @sp.write("#{hour}:#{minute}:#{second}:#{day}:#{month}:#{Time.now.year}")
+  sleep 1
 end
 
+#Setup the gmail api for the app
 OOB_URI = 'urn:ietf:wg:oauth:2.0:oob'
 APPLICATION_NAME = 'Gmail API Ruby Quickstart'
 CLIENT_SECRETS_PATH = 'client_secret.json'
@@ -64,12 +64,14 @@ service = Google::Apis::GmailV1::GmailService.new
 service.client_options.application_name = APPLICATION_NAME
 service.authorization = authorize
 
+#Checks if there is new email with keyword
 user_id = 'me'
 def check_for_alarm(user_id, service)
   while true
     # Show the user messages' id from certain email address
     result = service.list_user_messages(user_id, q: "from: dani.islas96@gmail.com is: unread", max_results: 1)
     if result.messages.nil?
+      @sp.write("0")
       puts "No messages found on the inbox"
     else
       result.messages.each { |message| @id_last_message = message.id}
@@ -83,8 +85,10 @@ def check_for_alarm(user_id, service)
       #Set the alarm if the keyword is found in the subject
       keyword = "WAKE UP"
       if message_subject == keyword
+        @sp.write("1")
         puts "The alarm is set for 6:30 am"
       else
+        @sp.write("0")
         puts "There's no alarm in the last message"
       end
     end
