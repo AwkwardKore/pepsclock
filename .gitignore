@@ -1,2 +1,5 @@
 #Ignore the OS generated files
 .DS_Store
+
+#Ignore information from google API
+client_secret.json
