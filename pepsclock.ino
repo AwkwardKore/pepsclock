@@ -44,15 +44,15 @@ Adafruit_TFTLCD tft(LCD_CS, LCD_CD, LCD_WR, LCD_RD, LCD_RESET);
 
 //Variables
 int currentHour, currentMinute, currentSecond, currentDay, currentMonth, currentYear, pastSecond;
-String dayTime;
+String dayTime, booleanAlarm;
 char digit;
 int interval = 1;
 
-void setup() {
+void setup () {
   Serial.begin(9600);
   tft.reset();
 
-  tft.begin(0x9341); // SDFP5408
+  tft.begin(0x9341);
   tft.setRotation(1);
   drawBorder();
   for (int x = 0 ; x < 19 ; x++) {
@@ -61,10 +61,25 @@ void setup() {
   setSistemTime();
 }
 
-void loop() {
+void loop () {
   tft.setTextColor(RED);
+  checkForAlarm();
   displayDate();
   displayHour();
+}
+
+//Checks if there is any alarm available. Received from the ruby script
+void checkForAlarm () {
+  if (Serial.available() > 0) {
+    booleanAlarm = Serial.read();
+  }
+  if (booleanAlarm == "48") {
+    tft.fillRect(10,150,219,25, WHITE);
+  }
+  if (booleanAlarm == "49") {
+    tft.setCursor(45,150);
+    tft.print("Alarm set");
+  }
 }
 
 // Draw a border
@@ -91,7 +106,7 @@ void setSistemTime() {
 //Get the actual time from serial input. Written by ruby script
 void getCurrentTime () {
   if (Serial.available() > 0) {
-    /* read the most recent byte */
+    //Read the most recent byte
     digit = Serial.read();
     dayTime.concat(digit);
   }
