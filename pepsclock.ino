@@ -41,14 +41,15 @@ Adafruit_TFTLCD tft(LCD_CS, LCD_CD, LCD_WR, LCD_RD, LCD_RESET);
 
 #define BOXSIZE 40
 #define PENRADIUS 3
-int oldcolor, currentcolor, currentHour, currentMinute, currentSecond, currentDay, currentMonth, currentYear, pastSecond;
+
+//Variables
+int currentHour, currentMinute, currentSecond, currentDay, currentMonth, currentYear, pastSecond;
 String dayTime;
 char digit;
 int interval = 1;
 
 void setup() {
   Serial.begin(9600);
-  Serial.println(F("Paint!"));
   tft.reset();
 
   tft.begin(0x9341); // SDFP5408
@@ -61,40 +62,9 @@ void setup() {
 }
 
 void loop() {
-  
   tft.setTextColor(RED);
-  //Display Date
-  tft.setCursor(15,15);
-  tft.setTextSize(1);
-  tft.print("Today is ");
-  displayMonth(month());
-  tft.print(" ");
-  tft.print(day());
-  tft.print(" ");
-  tft.print(year());
-  
-  //Display hour
-  tft.setTextSize (2);
-  tft.setCursor(50,50);
-  tft.print("Current time");
-  tft.setCursor(50,80);
-  tft.setTextSize (3);
-  if (hour() < 10) {
-    tft.print(0);
-  }
-  tft.print(hour());
-  tft.print(":");
-  if (minute() < 10) {
-    tft.print(0);
-  }
-  tft.print(minute());
-  tft.print(":");
-  if (second() < 10) {
-    tft.print(0);
-  }
-  tft.print(second());
-  delay(1000);
-  tft.fillRect(50,80,145,25, WHITE);
+  displayDate();
+  displayHour();
 }
 
 // Draw a border
@@ -125,6 +95,43 @@ void getCurrentTime () {
     digit = Serial.read();
     dayTime.concat(digit);
   }
+}
+
+//Display hour
+void displayHour () {
+  tft.setTextSize (2);
+  tft.setCursor(50,50);
+  tft.print("Current time");
+  tft.setCursor(50,80);
+  tft.setTextSize (3);
+  if (hour() < 10) {
+    tft.print(0);
+  }
+  tft.print(hour());
+  tft.print(":");
+  if (minute() < 10) {
+    tft.print(0);
+  }
+  tft.print(minute());
+  tft.print(":");
+  if (second() < 10) {
+    tft.print(0);
+  }
+  tft.print(second());
+  delay(1000);
+  tft.fillRect(50,80,145,25, WHITE);
+}
+
+//Display Date
+void displayDate () {
+  tft.setCursor(15,15);
+  tft.setTextSize(1);
+  tft.print("Today is ");
+  displayMonth(month());
+  tft.print(" ");
+  tft.print(day());
+  tft.print(" ");
+  tft.print(year());
 }
 
 //Print the current month
