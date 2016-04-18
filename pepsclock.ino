@@ -28,14 +28,14 @@ TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
 // optional
 #define LCD_RESET A4
 
-#define  BLACK   0x0000
-#define BLUE    0x001F
-#define RED     0xF800
-#define GREEN   0x07E0
-#define CYAN    0x07FF
-#define MAGENTA 0xF81F
-#define YELLOW  0xFFE0
-#define WHITE   0xFFFF
+#define  BLACK   0x0000 //WHITE
+#define BLUE    0x001F //YELLOW
+#define RED     0xF800 //CYAN
+#define GREEN   0x07E0 //MAGENTA
+#define CYAN    0x07FF //RED
+#define MAGENTA 0xF81F //GREEN
+#define YELLOW  0xFFE0 //BLUE
+#define WHITE   0xFFFF //BLACK
 
 Adafruit_TFTLCD tft(LCD_CS, LCD_CD, LCD_WR, LCD_RD, LCD_RESET);
 
@@ -46,7 +46,7 @@ Adafruit_TFTLCD tft(LCD_CS, LCD_CD, LCD_WR, LCD_RD, LCD_RESET);
 int currentHour, currentMinute, currentSecond, currentDay, currentMonth, currentYear, pastSecond;
 String dayTime, booleanAlarm;
 char digit;
-int interval = 1;
+int interval = 1, minutesAlarm, hourAlarm;
 
 void setup () {
   Serial.begin(9600);
@@ -59,10 +59,13 @@ void setup () {
     getCurrentTime();
   }
   setSistemTime();
+  pinMode(19, OUTPUT);
+  digitalWrite(19, LOW);
 }
 
 void loop () {
   tft.setTextColor(RED);
+  alarmSound();
   checkForAlarm();
   displayDate();
   displayHour();
@@ -70,15 +73,52 @@ void loop () {
 
 //Checks if there is any alarm available. Received from the ruby script
 void checkForAlarm () {
+  tft.setTextColor(RED);
+  tft.setTextSize(3);
   if (Serial.available() > 0) {
     booleanAlarm = Serial.read();
   }
   if (booleanAlarm == "48") {
     tft.fillRect(10,150,219,25, WHITE);
+    tft.fillRect(30, 200, 150, 40, WHITE);
+    tft.fillRect(45, 250, 150, 40, WHITE);
   }
   if (booleanAlarm == "49") {
     tft.setCursor(45,150);
     tft.print("Alarm set");
+    minutesAlarm = 10;
+    hourAlarm = 20;
+  }
+}
+
+void alarmSound () {
+  tft.setTextSize(3);
+  tft.setTextColor(RED);
+  if (booleanAlarm == "49") {
+    if (minutesAlarm == minute() && hourAlarm == hour()) {
+      digitalWrite(19, HIGH);
+    }
+    tft.fillRect(45, 250, 150, 40, RED);
+    tft.setTextColor(WHITE);
+    tft.setCursor(55,260);
+    tft.print("Silence");
+    digitalWrite(13, HIGH);
+    TSPoint p = ts.getPoint();
+    digitalWrite(13, LOW);
+    pinMode(XM, OUTPUT);
+    pinMode(YP, OUTPUT);
+    if (p.z > 10 && p.z < 1000) {
+      if (p.x > 305 && p.x < 775) {
+        if (p.y > 715  && p.y < 820) {
+          booleanAlarm = "48";
+          Serial.write("r");
+          digitalWrite(19, LOW);
+        }
+      }
+    }
+  }
+  else {
+    digitalWrite(19, LOW);
   }
 }
 
@@ -114,6 +154,7 @@ void getCurrentTime () {
 
 //Display hour
 void displayHour () {
+  tft.setTextColor(RED);
   tft.setTextSize (2);
   tft.setCursor(50,50);
   tft.print("Current time");
@@ -139,6 +180,7 @@ void displayHour () {
 
 //Display Date
 void displayDate () {
+  tft.setTextColor(RED);
   tft.setCursor(15,15);
   tft.setTextSize(1);
   tft.print("Today is ");

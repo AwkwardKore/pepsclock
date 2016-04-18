@@ -29,7 +29,7 @@ APPLICATION_NAME = 'Gmail API Ruby Quickstart'
 CLIENT_SECRETS_PATH = 'client_secret.json'
 CREDENTIALS_PATH = File.join(Dir.home, '.credentials',
                              "gmail-ruby-quickstart.yaml")
-SCOPE = Google::Apis::GmailV1::AUTH_GMAIL_READONLY
+SCOPE = Google::Apis::GmailV1::AUTH_GMAIL_MODIFY
 
 ##
 # Ensure valid credentials, either by restoring from the saved credentials
@@ -72,7 +72,7 @@ def check_for_alarm(user_id, service)
     result = service.list_user_messages(user_id, q: "from: dani.islas96@gmail.com is: unread", max_results: 1)
     if result.messages.nil?
       @sp.write("0")
-      puts "No messages found on the inbox"
+      #puts "No messages found on the inbox"
     else
       result.messages.each { |message| @id_last_message = message.id}
 
@@ -86,13 +86,17 @@ def check_for_alarm(user_id, service)
       keyword = "WAKE UP"
       if message_subject == keyword
         @sp.write("1")
-        puts "The alarm is set for 6:30 am"
+        puts "The alarm is set"
+        ready = @sp.read(1)
+        if ready == "r"
+          service.trash_user_message(user_id, @id_last_message)
+        end
       else
         @sp.write("0")
-        puts "There's no alarm in the last message"
+        #puts "There's no alarm in the last message"
       end
     end
-    sleep 1
+    #sleep 1
   end
 end
 
