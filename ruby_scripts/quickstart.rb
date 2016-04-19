@@ -71,8 +71,8 @@ def check_for_alarm(user_id, service)
     # Show the user messages' id from certain email address
     result = service.list_user_messages(user_id, q: "from: dani.islas96@gmail.com is: unread", max_results: 1)
     if result.messages.nil?
-      @sp.write("0")
-      #puts "No messages found on the inbox"
+      @sp.write("n")
+      puts "No messages found on the inbox"
     else
       result.messages.each { |message| @id_last_message = message.id}
 
@@ -82,21 +82,28 @@ def check_for_alarm(user_id, service)
       message_subject =  "#{result.payload.headers[5].value}"
       puts "#{message_subject}"
 
-      #Set the alarm if the keyword is found in the subject
-      keyword = "WAKE UP"
-      if message_subject == keyword
-        @sp.write("1")
-        puts "The alarm is set"
-        ready = @sp.read(1)
-        if ready == "r"
-          service.trash_user_message(user_id, @id_last_message)
+      #Set the alarm if only numbers are found in the subject
+      alarm_time = message_subject.gsub(/[^0-9]/, '')
+      if alarm_time.length > 3
+        alarm_time = alarm_time[0,4]
+        alarm_hour = alarm_time[0,2].to_i
+        alarm_minutes = alarm_time[2,4].to_i
+        if alarm_hour.between?(0,23) and alarm_minutes.between?(0,60)
+          @sp.write("#{alarm_hour}#{alarm_minutes}")
+          puts "The alarm is set"
+          ready = @sp.read(1)
+          if ready == "r"
+            service.trash_user_message(user_id, @id_last_message)
+          end
+        else
+          @sp.write("n")
+          puts "There's no alarm in the last message"
         end
       else
-        @sp.write("0")
-        #puts "There's no alarm in the last message"
+        @sp.write("n")
+        puts "There's no alarm in the last message"
       end
     end
-    #sleep 1
   end
 end
 

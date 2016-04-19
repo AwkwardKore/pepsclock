@@ -44,8 +44,8 @@ Adafruit_TFTLCD tft(LCD_CS, LCD_CD, LCD_WR, LCD_RD, LCD_RESET);
 
 //Variables
 int currentHour, currentMinute, currentSecond, currentDay, currentMonth, currentYear, pastSecond;
-String dayTime, booleanAlarm;
-char digit;
+String dayTime, alarmTime;
+char digit, isThereAlarm;
 int interval = 1, minutesAlarm, hourAlarm;
 
 void setup () {
@@ -59,62 +59,82 @@ void setup () {
     getCurrentTime();
   }
   setSistemTime();
+  isThereAlarm = 'n';
   pinMode(19, OUTPUT);
   digitalWrite(19, LOW);
 }
 
 void loop () {
   tft.setTextColor(RED);
-  alarmSound();
   checkForAlarm();
+  alarmSound();
   displayDate();
   displayHour();
 }
 
 //Checks if there is any alarm available. Received from the ruby script
 void checkForAlarm () {
-  tft.setTextColor(RED);
+  tft.setTextColor(RED,WHITE);
   tft.setTextSize(3);
   if (Serial.available() > 0) {
-    booleanAlarm = Serial.read();
+    isThereAlarm = Serial.read();
+    if (isThereAlarm != 'n') {
+      alarmTime.concat(isThereAlarm);
+      for (int x = 0 ; x < 3 ; x++) {
+        if (Serial.available() > 0) {
+          isThereAlarm = Serial.read();
+          alarmTime.concat(isThereAlarm);
+        }
+      }
+    }
   }
-  if (booleanAlarm == "48") {
+  if (isThereAlarm == 'n') {
     tft.fillRect(10,150,219,25, WHITE);
     tft.fillRect(30, 200, 150, 40, WHITE);
     tft.fillRect(45, 250, 150, 40, WHITE);
+    alarmTime = "";
+    digitalWrite(19, LOW);
   }
-  if (booleanAlarm == "49") {
-    tft.setCursor(45,150);
-    tft.print("Alarm set");
-    minutesAlarm = 10;
-    hourAlarm = 20;
+  if (isThereAlarm != 'n') {
+      hourAlarm = alarmTime.substring(0,2).toInt();
+      minutesAlarm = alarmTime.substring(2,4).toInt();
+      tft.setCursor(20,150);
+      tft.print("Alarm:");
+      if (hourAlarm < 10) {
+        tft.print("0");
+      }
+      tft.print(hourAlarm);
+      tft.print(":");
+      if (minutesAlarm < 10) {
+        tft.print("0");
+      }
+      tft.print(minutesAlarm);
+      tft.setTextColor(WHITE, RED);
+      tft.setCursor(60,260);
+      tft.print("SILENCE");
+      digitalWrite(13, HIGH);
+      TSPoint p = ts.getPoint();
+      digitalWrite(13, LOW);
+      pinMode(XM, OUTPUT);
+      pinMode(YP, OUTPUT);
+      if (p.z > 10 && p.z < 1000) {
+        if (p.x > 305 && p.x < 775) {
+          if (p.y > 715  && p.y < 820) {
+            isThereAlarm = 'n';
+            Serial.write("r");
+            digitalWrite(19, LOW);
+          }
+        }
+      }
   }
 }
 
 void alarmSound () {
   tft.setTextSize(3);
   tft.setTextColor(RED);
-  if (booleanAlarm == "49") {
+  if (isThereAlarm != 'n') {
     if (minutesAlarm == minute() && hourAlarm == hour()) {
       digitalWrite(19, HIGH);
-    }
-    tft.fillRect(45, 250, 150, 40, RED);
-    tft.setTextColor(WHITE);
-    tft.setCursor(55,260);
-    tft.print("Silence");
-    digitalWrite(13, HIGH);
-    TSPoint p = ts.getPoint();
-    digitalWrite(13, LOW);
-    pinMode(XM, OUTPUT);
-    pinMode(YP, OUTPUT);
-    if (p.z > 10 && p.z < 1000) {
-      if (p.x > 305 && p.x < 775) {
-        if (p.y > 715  && p.y < 820) {
-          booleanAlarm = "48";
-          Serial.write("r");
-          digitalWrite(19, LOW);
-        }
-      }
     }
   }
   else {
@@ -154,7 +174,7 @@ void getCurrentTime () {
 
 //Display hour
 void displayHour () {
-  tft.setTextColor(RED);
+  tft.setTextColor(RED,WHITE);
   tft.setTextSize (2);
   tft.setCursor(50,50);
   tft.print("Current time");
@@ -174,8 +194,6 @@ void displayHour () {
     tft.print(0);
   }
   tft.print(second());
-  delay(1000);
-  tft.fillRect(10,80,219,25, WHITE);
 }
 
 //Display Date
@@ -232,3 +250,34 @@ void displayMonth (int m) {
       break;
   }
 }
+
+//void whatKindofAlarm (char alarmType) {
+//  switch(alarmType) {
+//    case 'a':
+//      alarmActivate = 1;
+//      tft.setCursor(45,150);
+//      tft.print("Alarm set");
+//      minutesAlarm = 100;
+//      hourAlarm = 30;
+//      //tft.fillRect(45, 250, 150, 40, RED);
+//      tft.setTextColor(WHITE, RED);
+//      tft.setCursor(60,260);
+//      tft.print("SILENCE");
+//      digitalWrite(13, HIGH);
+//      TSPoint p = ts.getPoint();
+//      digitalWrite(13, LOW);
+//      pinMode(XM, OUTPUT);
+//      pinMode(YP, OUTPUT);
+//      if (p.z > 10 && p.z < 1000) {
+//        if (p.x > 305 && p.x < 775) {
+//          if (p.y > 715  && p.y < 820) {
+//            isThereAlarm = '0';
+//            alarmActivate = 0;
+//            Serial.write("r");
+//            digitalWrite(19, LOW);
+//          }
+//        }
+//      }
+//      break;
+//  }
+//}
