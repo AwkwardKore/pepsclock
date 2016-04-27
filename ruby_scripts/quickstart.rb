@@ -89,7 +89,10 @@ def check_for_alarm(user_id, service)
         alarm_hour = alarm_time[0,2].to_i
         alarm_minutes = alarm_time[2,4].to_i
         if alarm_hour.between?(0,23) and alarm_minutes.between?(0,60)
-          @sp.write("#{alarm_hour}#{alarm_minutes}")
+          @sp.write(0) if alarm_hour.between?(0,9)
+          @sp.write("#{alarm_hour}")
+          @sp.write(0) if alarm_minutes.between?(0,9)
+          @sp.write("#{alarm_minutes}")
           puts "The alarm is set"
           ready = @sp.read(1)
           if ready == "r"
