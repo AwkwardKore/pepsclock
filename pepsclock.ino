@@ -251,33 +251,3 @@ void displayMonth (int m) {
   }
 }
 
-//void whatKindofAlarm (char alarmType) {
-//  switch(alarmType) {
-//    case 'a':
-//      alarmActivate = 1;
-//      tft.setCursor(45,150);
-//      tft.print("Alarm set");
-//      minutesAlarm = 100;
-//      hourAlarm = 30;
-//      //tft.fillRect(45, 250, 150, 40, RED);
-//      tft.setTextColor(WHITE, RED);
-//      tft.setCursor(60,260);
-//      tft.print("SILENCE");
-//      digitalWrite(13, HIGH);
-//      TSPoint p = ts.getPoint();
-//      digitalWrite(13, LOW);
-//      pinMode(XM, OUTPUT);
-//      pinMode(YP, OUTPUT);
-//      if (p.z > 10 && p.z < 1000) {
-//        if (p.x > 305 && p.x < 775) {
-//          if (p.y > 715  && p.y < 820) {
-//            isThereAlarm = '0';
-//            alarmActivate = 0;
-//            Serial.write("r");
-//            digitalWrite(19, LOW);
-//          }
-//        }
-//      }
-//      break;
-//  }
-//}
